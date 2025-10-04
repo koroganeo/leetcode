@@ -1,4 +1,6 @@
 function maxArea(height: number[]): number {
+  if (height.length < 2) return 0;
+
   let l = 0;
   let r = height.length - 1;
   let maxWater = 0;
