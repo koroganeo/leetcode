@@ -1,11 +1,7 @@
 function swimInWater(grid: number[][]): number {
   const rows = grid.length;
   const cols = grid[0].length;
-  const visitedHead: boolean[][] = Array.from({ length: rows }, () => new Array(cols).fill(false));
-  const visitedTail: boolean[][] = Array.from({ length: rows }, () => new Array(cols).fill(false));
-
-  const headSet: Set<string> = new Set();
-  const tailSet: Set<string> = new Set();
+  const visited: boolean[][] = Array.from({ length: rows }, () => new Array(cols).fill(false));
 
   const directions: number[][] = [
     [0, -1],
@@ -14,52 +10,31 @@ function swimInWater(grid: number[][]): number {
     [-1, 0],
   ];
 
-  const stringify = (a: number, b: number) => `${a}-${b}`;
-  const dfs = (gridSet: Set<string>, visited: boolean[][], t: number) => {
-    const currentPositions: string[] = Array.from(gridSet);
+  const priorityQueue: number[][] = [[0, 0, grid[0][0]]];
+  visited[0][0] = true;
 
-    for (const pos of currentPositions) {
-      const [x, y] = pos.split('-').map(Number);
-      directions.forEach((direction) => {
-        const [a, b] = direction;
-        const i: number = a + x;
-        const j: number = b + y;
-        if (i >= 0 && i < rows && j >= 0 && j < cols && !visited[i][j] && grid[i][j] <= t) {
-          gridSet.add(stringify(i, j));
-          visited[i][j] = true;
-        }
-      });
+  let maxElevation = 0;
+
+  while (priorityQueue.length) {
+    const cell: number[] | undefined = priorityQueue.shift();
+    if (!cell) break;
+
+    const [row, col]: number[] = cell;
+    maxElevation = Math.max(grid[row][col], maxElevation);
+
+    if (row === rows - 1 && col === cols - 1) break;
+
+    for (const [a, b] of directions) {
+      const nextRow: number = a + row;
+      const nextCol: number = b + col;
+      if (nextRow >= 0 && nextRow < rows && nextCol >= 0 && nextCol < cols && !visited[nextRow][nextCol]) {
+        visited[nextRow][nextCol] = true;
+        priorityQueue.push([nextRow, nextCol, grid[nextRow][nextCol]]);
+      }
     }
-  };
 
-  headSet.add(stringify(0, 0));
-  visitedHead[0][0] = true;
-  tailSet.add(stringify(rows - 1, cols - 1));
-  visitedTail[rows - 1][cols - 1] = true;
-
-  let t = 0;
-
-  const checkDuplicate = (set1: Set<string>, set2: Set<string>): boolean => {
-    for (const pos of set1) {
-      if (set2.has(pos)) return true;
-    }
-    return false;
-  };
-
-  while (!checkDuplicate(headSet, tailSet) && t <= rows * cols) {
-    t++;
-    dfs(headSet, visitedHead, t);
-    dfs(tailSet, visitedTail, t);
-    console.log(headSet, tailSet);
+    priorityQueue.sort((a: number[], b: number[]) => a[2] - b[2]);
   }
 
-  return t;
+  return maxElevation;
 }
-
-[
-  [0, 1, 2, 3, 4],
-  [24, 23, 22, 21, 5],
-  [12, 13, 14, 15, 16],
-  [11, 17, 18, 19, 20],
-  [10, 9, 8, 7, 6],
-];
